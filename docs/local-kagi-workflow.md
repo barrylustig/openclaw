@@ -37,6 +37,25 @@ Useful local backup created during setup:
 
 Keep `main` as close to upstream as possible, and keep Kagi work on the feature branch.
 
+### Command sequence
+
+```bash
+# 1) Go to upstream-clean main
+git -C ~/Sources/AI/openclaw checkout main
+
+# 2) Update OpenClaw / upstream code
+openclaw update
+
+# 3) Return to the Kagi customization branch
+git -C ~/Sources/AI/openclaw checkout feat/kagi-search-provider
+
+# 4) Rebase the branch onto updated main
+git -C ~/Sources/AI/openclaw rebase main
+
+# 5) Restart OpenClaw so the updated branch is what runs
+openclaw gateway restart
+```
+
 ### Update upstream
 
 ```bash
