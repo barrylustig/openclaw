@@ -8,6 +8,7 @@ type DdgPluginConfig = {
   webSearch?: {
     region?: string;
     safeSearch?: string;
+    endpointUrlTemplate?: string;
   };
 };
 
@@ -38,4 +39,21 @@ export function resolveDdgSafeSearch(config?: OpenClawConfig): DdgSafeSearch {
     return normalized;
   }
   return DEFAULT_DDG_SAFE_SEARCH;
+}
+
+export function resolveDdgEndpointUrlTemplate(config?: OpenClawConfig): string | undefined {
+  const envValue = process.env.OPENCLAW_DDG_ENDPOINT_URL_TEMPLATE;
+  if (typeof envValue === "string") {
+    const trimmedEnvValue = envValue.trim();
+    if (trimmedEnvValue) {
+      return trimmedEnvValue;
+    }
+  }
+
+  const value = resolveDdgWebSearchConfig(config)?.endpointUrlTemplate;
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed || undefined;
 }

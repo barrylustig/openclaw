@@ -13,7 +13,12 @@ import {
   wrapWebContent,
   writeCache,
 } from "openclaw/plugin-sdk/provider-web-search";
-import { resolveDdgRegion, resolveDdgSafeSearch, type DdgSafeSearch } from "./config.js";
+import {
+  resolveDdgEndpointUrlTemplate,
+  resolveDdgRegion,
+  resolveDdgSafeSearch,
+  type DdgSafeSearch,
+} from "./config.js";
 
 const DDG_HTML_ENDPOINT = "https://html.duckduckgo.com/html";
 const DEFAULT_TIMEOUT_SECONDS = 20;
@@ -84,6 +89,43 @@ function isBotChallenge(html: string): boolean {
   return /g-recaptcha|are you a human|id="challenge-form"|name="challenge"/i.test(html);
 }
 
+function buildSearchUrl(params: {
+  query: string;
+  region?: string;
+  safeSearch: DdgSafeSearch;
+  endpointUrlTemplate?: string;
+}): string {
+  const endpointUrlTemplate = params.endpointUrlTemplate?.trim();
+  if (endpointUrlTemplate) {
+    if (endpointUrlTemplate.includes("%s")) {
+      return endpointUrlTemplate.replaceAll("%s", encodeURIComponent(params.query));
+    }
+    const customUrl = new URL(endpointUrlTemplate);
+    customUrl.searchParams.set("q", params.query);
+    return customUrl.toString();
+  }
+
+  const url = new URL(DDG_HTML_ENDPOINT);
+  url.searchParams.set("q", params.query);
+  if (params.region) {
+    url.searchParams.set("kl", params.region);
+  }
+  url.searchParams.set("kp", DDG_SAFE_SEARCH_PARAM[params.safeSearch]);
+  return url.toString();
+}
+
+function resolveSearchProviderLabel(url: string): string {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname === "kagi.com" || hostname.endsWith(".kagi.com")) {
+      return "kagi";
+    }
+  } catch {
+    // ignore parse failures and fall back
+  }
+  return "duckduckgo";
+}
+
 function parseDuckDuckGoHtml(html: string): DuckDuckGoResult[] {
   const results: DuckDuckGoResult[] = [];
   const resultRegex = /<a\b(?=[^>]*\bclass="[^"]*\bresult__a\b[^"]*")([^>]*)>([\s\S]*?)<\/a>/gi;
@@ -131,6 +173,7 @@ export async function runDuckDuckGoSearch(params: {
       : resolveDdgSafeSearch(params.config);
   const timeoutSeconds = resolveTimeoutSeconds(params.timeoutSeconds, DEFAULT_TIMEOUT_SECONDS);
   const cacheTtlMs = resolveCacheTtlMs(params.cacheTtlMinutes, DEFAULT_CACHE_TTL_MINUTES);
+  const endpointUrlTemplate = resolveDdgEndpointUrlTemplate(params.config);
   const cacheKey = normalizeCacheKey(
     JSON.stringify({
       provider: "duckduckgo",
@@ -138,6 +181,7 @@ export async function runDuckDuckGoSearch(params: {
       count,
       region: region ?? "",
       safeSearch,
+      endpointUrlTemplate: endpointUrlTemplate ?? "",
     }),
   );
   const cached = readCache(DDG_SEARCH_CACHE, cacheKey);
@@ -145,17 +189,18 @@ export async function runDuckDuckGoSearch(params: {
     return { ...cached.value, cached: true };
   }
 
-  const url = new URL(DDG_HTML_ENDPOINT);
-  url.searchParams.set("q", params.query);
-  if (region) {
-    url.searchParams.set("kl", region);
-  }
-  url.searchParams.set("kp", DDG_SAFE_SEARCH_PARAM[safeSearch]);
+  const url = buildSearchUrl({
+    query: params.query,
+    region,
+    safeSearch,
+    endpointUrlTemplate,
+  });
 
+  const providerLabel = resolveSearchProviderLabel(url);
   const startedAt = Date.now();
   const results = await withTrustedWebSearchEndpoint(
     {
-      url: url.toString(),
+      url,
       timeoutSeconds,
       init: {
         method: "GET",
@@ -183,13 +228,13 @@ export async function runDuckDuckGoSearch(params: {
 
   const payload = {
     query: params.query,
-    provider: "duckduckgo",
+    provider: providerLabel,
     count: results.length,
     tookMs: Date.now() - startedAt,
     externalContent: {
       untrusted: true,
       source: "web_search",
-      provider: "duckduckgo",
+      provider: providerLabel,
       wrapped: true,
     },
     results: results.map((result) => ({

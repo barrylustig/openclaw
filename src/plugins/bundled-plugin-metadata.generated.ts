@@ -823,6 +823,9 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
                 type: "string",
                 enum: ["strict", "moderate", "off"],
               },
+              endpointUrlTemplate: {
+                type: "string",
+              },
             },
           },
         },
@@ -835,6 +838,10 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         "webSearch.safeSearch": {
           label: "DuckDuckGo SafeSearch",
           help: "SafeSearch level for DuckDuckGo results.",
+        },
+        "webSearch.endpointUrlTemplate": {
+          label: "Search URL Template",
+          help: "Optional custom HTML search URL template. Use %s as the encoded query placeholder.",
         },
       },
     },
@@ -1343,6 +1350,58 @@ export const GENERATED_BUNDLED_PLUGIN_METADATA = [
         properties: {},
       },
       channels: ["irc"],
+    },
+  },
+  {
+    dirName: "kagi",
+    idHint: "kagi-plugin",
+    source: {
+      source: "./index.ts",
+      built: "index.js",
+    },
+    packageName: "@openclaw/kagi-plugin",
+    packageVersion: "2026.3.24",
+    packageDescription: "OpenClaw Kagi plugin",
+    packageManifest: {
+      extensions: ["./index.ts"],
+    },
+    manifest: {
+      id: "kagi",
+      configSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          webSearch: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              endpointUrlTemplate: {
+                type: "string",
+              },
+              userAgent: {
+                type: "string",
+              },
+              cookieFile: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+      uiHints: {
+        "webSearch.endpointUrlTemplate": {
+          label: "Kagi Search URL Template",
+          help: "Kagi search URL template. Use %s as the encoded query placeholder.",
+        },
+        "webSearch.userAgent": {
+          label: "Kagi User-Agent",
+          help: "Optional User-Agent override for Kagi requests.",
+        },
+        "webSearch.cookieFile": {
+          label: "Kagi Cookie File",
+          help: "Optional path to a local cookie export for kagi.com requests.",
+        },
+      },
     },
   },
   {

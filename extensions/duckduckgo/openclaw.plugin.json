@@ -8,6 +8,10 @@
     "webSearch.safeSearch": {
       "label": "DuckDuckGo SafeSearch",
       "help": "SafeSearch level for DuckDuckGo results."
+    },
+    "webSearch.endpointUrlTemplate": {
+      "label": "Search URL Template",
+      "help": "Optional custom HTML search URL template. Use %s as the encoded query placeholder."
     }
   },
   "configSchema": {
@@ -24,6 +28,9 @@
           "safeSearch": {
             "type": "string",
             "enum": ["strict", "moderate", "off"]
+          },
+          "endpointUrlTemplate": {
+            "type": "string"
           }
         }
       }

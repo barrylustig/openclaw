@@ -1,0 +1,38 @@
+{
+  "id": "kagi",
+  "uiHints": {
+    "webSearch.endpointUrlTemplate": {
+      "label": "Kagi Search URL Template",
+      "help": "Kagi search URL template. Use %s as the encoded query placeholder."
+    },
+    "webSearch.userAgent": {
+      "label": "Kagi User-Agent",
+      "help": "Optional User-Agent override for Kagi requests."
+    },
+    "webSearch.cookieFile": {
+      "label": "Kagi Cookie File",
+      "help": "Optional path to a local cookie export for kagi.com requests."
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "webSearch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "endpointUrlTemplate": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "cookieFile": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
